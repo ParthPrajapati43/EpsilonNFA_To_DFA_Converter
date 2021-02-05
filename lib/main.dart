@@ -601,18 +601,26 @@ class _NFAtoDFASolverState extends State<NFAtoDFASolver> {
 
   List<Widget> stack = [];
 
+  double diff = 25.0;
   void curve(double start, double end, String c) {
     bool right;
     String arrow;
     double _top, _top2;
+    IconData icon;
     right = start < end ? true : false;
     arrow = right ? ">" : "<";
-    _top = right ? 42 : 142;
-    _top2 = right ? 32 : 162;
+    icon =
+        right ? Icons.arrow_forward_ios_rounded : Icons.arrow_back_ios_rounded;
+    _top = right
+        ? 46 + newStates * diff - (end - start - 1) * diff
+        : 144 + newStates * diff + (start - end - 1) * diff;
+    _top2 = right
+        ? 60 + newStates * diff - (end - start - 1) * diff
+        : 132 + newStates * diff + (start - end - 1) * diff;
     double left = 48 + 150 * start;
     stack.add(
       Positioned(
-        top: 107,
+        top: 107 + newStates * diff,
         left: left,
         child: CustomPaint(
           painter: CurvePainter(distance: end - start, right: right),
@@ -623,12 +631,7 @@ class _NFAtoDFASolverState extends State<NFAtoDFASolver> {
       Positioned(
         top: _top,
         left: 48 + 150 * (start + end) / 2,
-        child: Text(
-          arrow,
-          style: TextStyle(
-            fontSize: 25.0,
-          ),
-        ),
+        child: Icon(icon),
       ),
     );
     stack.add(
@@ -656,24 +659,53 @@ class _NFAtoDFASolverState extends State<NFAtoDFASolver> {
         }
       }
     }
+    stack.add(
+      Positioned(
+        left: 0,
+        top: 0,
+        child: Container(
+          alignment: Alignment.centerLeft,
+          padding: EdgeInsets.fromLTRB(20.0, 20.0, 10.0, 10.0),
+          child: Text(
+            'DFA Diagram',
+            style: TextStyle(
+              fontSize: 30.0,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ),
+      ),
+    );
+    stack.add(
+      Positioned(
+        top: 75 + newStates * (diff) + 28,
+        left: 1,
+        child: Icon(
+          Icons.arrow_forward,
+        ),
+      ),
+    );
+
     for (int i = 0; i < newStates; ++i)
       stack.add(
         Positioned(
-          top: 75,
+          top: 75 + newStates * (diff),
           left: 20 + 150 * double.parse(i.toString()),
           child: Container(
             decoration: BoxDecoration(
-              color: Colors.blue,
+              color: (newFinalStates.contains(String.fromCharCode(i + 65)))
+                  ? Colors.green
+                  : Colors.blue,
               shape: BoxShape.circle,
               border: Border.all(
                 color: Colors.black,
                 width: 2.0,
               ),
             ),
-            padding: EdgeInsets.all(25),
+            padding: EdgeInsets.all(20),
             child: Text(
               String.fromCharCode(i + 65),
-              style: TextStyle(fontSize: 15),
+              style: TextStyle(fontSize: 25),
             ),
           ),
         ),
@@ -685,7 +717,7 @@ class _NFAtoDFASolverState extends State<NFAtoDFASolver> {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Container(
-        height: 200,
+        height: 200 + newStates * diff * 2,
         width: double.parse((150 * (newStates - 1) + 100).toString()),
         child: Stack(
           children: stack,
@@ -702,6 +734,9 @@ class _NFAtoDFASolverState extends State<NFAtoDFASolver> {
         nfaDisplay(),
         dfaDisplay(),
         outputTable.length == 0 ? Container() : draw(),
+        Container(
+          height: 200,
+        ),
       ],
     );
   }

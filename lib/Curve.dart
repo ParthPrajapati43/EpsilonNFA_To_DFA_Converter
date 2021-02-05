@@ -17,7 +17,8 @@ class CurvePainter extends CustomPainter {
     var path = Path();
     endX = distance * 150;
     middleX = endX / 2;
-    middleY = right ? -100 : 100;
+    middleY =
+        (right ? -100 : (100 - 100)) - (distance - 1) * 50; // 100 - diff*2
     path.quadraticBezierTo(middleX, middleY, endX, endY);
     canvas.drawPath(path, paint);
   }
