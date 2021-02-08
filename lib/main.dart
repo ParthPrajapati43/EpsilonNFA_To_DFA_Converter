@@ -115,7 +115,7 @@ class _NFAtoDFASolverState extends State<NFAtoDFASolver> {
     }
     alphabetsList.add("ϵ");
     info += "ϵ }\nq0 = { A }\nF = { ";
-    info += String.fromCharCode(65 + noOfStates);
+    info += String.fromCharCode(65 + noOfStates - 1);
     info += " }";
   }
 
