@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:expandable/expandable.dart';
 import 'package:mdi/mdi.dart';
 import 'dart:collection';
 import 'Curve.dart';
+import 'accordion.dart';
+import 'package:flutter_phoenix/flutter_phoenix.dart';
 
-void main() => runApp(MaterialApp(
-      home: Home(),
+void main() => runApp(Phoenix(
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: Home(),
+      ),
     ));
 
 class Home extends StatelessWidget {
@@ -16,7 +22,18 @@ class Home extends StatelessWidget {
           'ϵ-NFA to DFA Converter',
           style: TextStyle(color: Colors.white),
         ),
-        backgroundColor: Colors.green,
+        backgroundColor: Colors.blue[800],
+        actions: [
+          IconButton(
+            padding: EdgeInsets.symmetric(horizontal: 10),
+            icon: Icon(Icons.refresh),
+            hoverColor: Colors.blue[400],
+            tooltip: 'Refresh Converter',
+            onPressed: () {
+              Phoenix.rebirth(context);
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -53,10 +70,12 @@ class _NFAtoDFASolverState extends State<NFAtoDFASolver> {
   // variable for animation
   List<List<String>> outputTable = [];
   List<String> outputStates = [], outputAlphabets = [];
+  List<Widget> stack = [];
 
   // function to get the info of DFA
   dfaInfo() {
     outputStates = [];
+    outputAlphabets = [];
     info2 = "Q = { ";
     for (int i = 0; i < newStates; ++i) {
       info2 += String.fromCharCode(i + 65);
@@ -109,7 +128,7 @@ class _NFAtoDFASolverState extends State<NFAtoDFASolver> {
       cinfo += key;
       cinfo += " is ";
       cinfo += value;
-      cinfo += " [ New assigned state: ";
+      cinfo += "\n[ New assigned state: ";
       cinfo += String.fromCharCode(temp + 65);
       cinfo += " ]\n";
       ++temp;
@@ -341,6 +360,7 @@ class _NFAtoDFASolverState extends State<NFAtoDFASolver> {
                           if (_formKey.currentState.validate()) {
                             _padding = 10.0;
                             _visible = true;
+                            _visible2 = false;
                             _color = Colors.grey[300];
                             noOfAlphabets = na;
                             noOfStates = ns;
@@ -385,7 +405,7 @@ class _NFAtoDFASolverState extends State<NFAtoDFASolver> {
                 ),
               ),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 50, vertical: 1.0),
+                padding: EdgeInsets.symmetric(horizontal: 5, vertical: 1.0),
                 child: Container(
                   color: _color,
                   margin:
@@ -478,6 +498,12 @@ class _NFAtoDFASolverState extends State<NFAtoDFASolver> {
                       color: Colors.blue,
                       onPressed: () {
                         setState(() {
+                          newStates = 0;
+                          info2 = "";
+                          cinfo = "";
+                          newFinalStates = [];
+                          closureMap = {};
+                          stack = [];
                           solve();
                           dfaInfo();
                           closureInfo();
@@ -514,7 +540,7 @@ class _NFAtoDFASolverState extends State<NFAtoDFASolver> {
                 ),
               ),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 50, vertical: 1.0),
+                padding: EdgeInsets.symmetric(horizontal: 5, vertical: 1.0),
                 child: Container(
                   color: _color,
                   margin:
@@ -542,7 +568,7 @@ class _NFAtoDFASolverState extends State<NFAtoDFASolver> {
                 ),
               ),
               Container(
-                padding: EdgeInsets.symmetric(horizontal: 50, vertical: 1.0),
+                padding: EdgeInsets.symmetric(horizontal: 5, vertical: 1.0),
                 child: Container(
                   color: _color,
                   margin:
@@ -600,14 +626,18 @@ class _NFAtoDFASolverState extends State<NFAtoDFASolver> {
     );
   }
 
-  List<Widget> stack = [];
-
   double diff = 25.0;
   void curve(double start, double end, String c) {
     bool right;
     double _top, _top2;
     IconData icon;
     double dist;
+    int cnt = 0;
+    for (int i = 0; i < (c.codeUnitAt(0) - 97); ++i) {
+      if (outputTable[start.toInt()][i] ==
+          outputTable[start.toInt()][c.codeUnitAt(0) - 97]) ++cnt;
+    }
+    print('$start to $end on $c with count $cnt');
     right = start < end ? true : false;
     dist = right ? -150 : 150;
     icon =
@@ -639,9 +669,9 @@ class _NFAtoDFASolverState extends State<NFAtoDFASolver> {
       stack.add(
         Positioned(
           top: _top2,
-          left: 48 + 150 * (start + end) / 2,
+          left: 48 + 150 * (start + end) / 2 + cnt * 12,
           child: Text(
-            c,
+            (cnt > 0) ? ", $c" : "$c",
             style: TextStyle(
               fontSize: 18.0,
             ),
@@ -687,23 +717,6 @@ class _NFAtoDFASolverState extends State<NFAtoDFASolver> {
         }
       }
     }
-    stack.add(
-      Positioned(
-        left: 0,
-        top: 0,
-        child: Container(
-          alignment: Alignment.centerLeft,
-          padding: EdgeInsets.fromLTRB(20.0, 20.0, 10.0, 10.0),
-          child: Text(
-            'DFA Diagram',
-            style: TextStyle(
-              fontSize: 30.0,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-      ),
-    );
     stack.add(
       Positioned(
         top: 75 + newStates * (diff) + 28,
@@ -756,16 +769,22 @@ class _NFAtoDFASolverState extends State<NFAtoDFASolver> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        inputsDisplay(),
-        nfaDisplay(),
-        dfaDisplay(),
-        outputTable.length == 0 ? Container() : draw(),
-        Container(
-          height: 200,
-        ),
-      ],
+    return ExpandableTheme(
+      data: const ExpandableThemeData(
+        iconColor: Colors.blue,
+        useInkWell: true,
+      ),
+      child: Column(
+        children: <Widget>[
+          inputsDisplay(),
+          _visible ? Accordion(nfaDisplay(), "ϵ-NFA Information") : Container(),
+          _visible2 ? Accordion(dfaDisplay(), "DFA Information") : Container(),
+          _visible2
+              ? Accordion(
+                  outputTable.length == 0 ? Container() : draw(), "DFA Diagram")
+              : Container(),
+        ],
+      ),
     );
   }
 }
