@@ -439,6 +439,7 @@ class _NFAtoDFASolverState extends State<NFAtoDFASolver> {
                                     setState(() {
                                       int ii = i, jj = j;
                                       inputTable[jj][ii] = val;
+                                      if (val == "") inputTable[jj][ii] = "-";
                                       print(inputTable);
                                     });
                                   },
@@ -604,11 +605,11 @@ class _NFAtoDFASolverState extends State<NFAtoDFASolver> {
   double diff = 25.0;
   void curve(double start, double end, String c) {
     bool right;
-    String arrow;
     double _top, _top2;
     IconData icon;
+    double dist;
     right = start < end ? true : false;
-    arrow = right ? ">" : "<";
+    dist = right ? -150 : 150;
     icon =
         right ? Icons.arrow_forward_ios_rounded : Icons.arrow_back_ios_rounded;
     _top = right
@@ -618,34 +619,61 @@ class _NFAtoDFASolverState extends State<NFAtoDFASolver> {
         ? 60 + newStates * diff - (end - start - 1) * diff
         : 132 + newStates * diff + (start - end - 1) * diff;
     double left = 48 + 150 * start;
-    stack.add(
-      Positioned(
-        top: 107 + newStates * diff,
-        left: left,
-        child: CustomPaint(
-          painter: CurvePainter(distance: end - start, right: right),
-        ),
-      ),
-    );
-    stack.add(
-      Positioned(
-        top: _top,
-        left: 48 + 150 * (start + end) / 2,
-        child: Icon(icon),
-      ),
-    );
-    stack.add(
-      Positioned(
-        top: _top2,
-        left: 48 + 150 * (start + end) / 2,
-        child: Text(
-          c,
-          style: TextStyle(
-            fontSize: 18.0,
+    if (start != end) {
+      stack.add(
+        Positioned(
+          top: 107 + newStates * diff,
+          left: left,
+          child: CustomPaint(
+            painter: CurvePainter(distance: end - start, right: right),
           ),
         ),
-      ),
-    );
+      );
+      stack.add(
+        Positioned(
+          top: _top,
+          left: 48 + 150 * (start + end) / 2,
+          child: Icon(icon),
+        ),
+      );
+      stack.add(
+        Positioned(
+          top: _top2,
+          left: 48 + 150 * (start + end) / 2,
+          child: Text(
+            c,
+            style: TextStyle(
+              fontSize: 18.0,
+            ),
+          ),
+        ),
+      );
+    } else {
+      stack.add(
+        Positioned(
+          top: right ? 56 + newStates * diff : 134 + newStates * diff,
+          left: 38 + 150 * (start + end) / 2,
+          child: RotationTransition(
+            turns: right
+                ? AlwaysStoppedAnimation(270 / 360)
+                : AlwaysStoppedAnimation(90 / 360),
+            child: Icon(Icons.replay),
+          ),
+        ),
+      );
+      stack.add(
+        Positioned(
+          top: right ? 55 + newStates * diff : 135 + newStates * diff,
+          left: 28 + 150 * (start + end) / 2,
+          child: Text(
+            c,
+            style: TextStyle(
+              fontSize: 18.0,
+            ),
+          ),
+        ),
+      );
+    }
   }
 
   void calculate() {
